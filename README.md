@@ -1,8 +1,6 @@
 # pinboard-to-wordpress
 
-Gateway pinboard.in posts to Wordpress -- as used on https://jmason.ie/ .
-
-A quick Python gateway, as used at https://jmason.ie/ to gateway my posts from https://pinboard.in/u:jm .
+Gateway pinboard.in posts to Wordpress -- as used on https://jmason.ie/ to gateway my posts from https://pinboard.in/u:jm .
 
 ## How To Use
 
