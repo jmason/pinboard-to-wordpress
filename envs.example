@@ -1,0 +1,21 @@
+
+# The top-level URL for your Pinboard, omitting the final /
+export PINBOARD_TAG_PREFIX="https://pinboard.in/u:jm"
+
+# The URL for your Wordpress blog
+export WORDPRESS_URL="https://jmason.ie"
+
+# The WP username to post as
+export USERNAME="links"
+
+# The Application Password to log in with: see https://make.wordpress.org/core/2020/11/05/application-passwords-integration-guide/
+# for details on how to create one of these
+export APP_PASSWORD="fill in your app password here"
+
+# The _private_ RSS feed URL to read items from.  Log in to your Pinboard account and it's at the top right of your
+# Pinboard bookmarks list
+export RSS_FEED_URL="https://feeds.pinboard.in/rss/secret:_your_secret_goes_here_/u:jm/"
+
+# Filename to track the SQLite state in
+export DB_PATH="already_posted.db"
+
