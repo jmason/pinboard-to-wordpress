@@ -13,3 +13,13 @@ Then run:
 
 Run that as often as necessary; it'll maintain a sqlite database to track which URLs have been previously posted.
 
+
+## How To Repost An Already-Posted Article
+
+This quick sqlite command line will allow reposting any articles posted in the last 24 hours:
+
+```
+sqlite3 already_posted.db  
+delete from published_items where published_date > datetime('now','-1 day');
+```
+

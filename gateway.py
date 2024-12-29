@@ -22,6 +22,9 @@ APP_PASSWORD = os.getenv("APP_PASSWORD")
 RSS_FEED_URL = os.getenv("RSS_FEED_URL")
 DB_PATH = os.getenv("DB_PATH")
 
+NO_POST=False
+# NO_POST=True # for markdown debugging
+
 class WordPressRSSPublisher:
     def __init__(self, wordpress_url: str, username: str, application_password: str, db_path: str = "rss_state.db"):
         """Initialize the WordPress RSS publisher."""
@@ -99,6 +102,9 @@ class WordPressRSSPublisher:
 
     def _is_item_published(self, link: str) -> bool:
         """Check if an item has already been published."""
+        if NO_POST:
+            return False # always process them for testing
+
         try:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
@@ -110,6 +116,9 @@ class WordPressRSSPublisher:
 
     def _record_published_item(self, link: str, title: str, published_date: str, wordpress_post_id: int):
         """Record a published item in the database."""
+        if NO_POST:
+            return
+
         try:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
@@ -155,17 +164,22 @@ class WordPressRSSPublisher:
 
         return tags
 
-    def create_post(self, title: str, content: str, link: str, tags: List[str], status: str = "draft") -> Optional[Dict]:
-        """Create a new WordPress post with tags."""
-        endpoint = f"{self.api_base}/posts"
-
+    def create_post_dict(self, title: str, content: str, link: str, tags: List[str], status: str = "draft") -> Dict:
+        """Mark up a new WordPress post."""
         # stolen from https://github.com/r0wb0t/markdown-urlize
         urlfinder = re.compile(r'((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+(:[0-9]+)?|'
                     r'(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:/[\+~%/\.\w\-_]*)?\??'
                         r'(?:[\-\+=&;%@\.\w_]*)#?(?:[\.!/\\\w]*))?)')
 
         content = urlfinder.sub(r'<\1>', content)
-        content = markdown.markdown(content, extensions=['extra', 'sane_lists'])
+
+        # ensure blockquote tags (used for quote blocks) will have markdown processing enabled inside them
+        content = re.sub(r'<blockquote>', '<blockquote markdown="1">', content)
+        
+        if NO_POST:
+            print(content)
+
+        content = markdown.markdown(content, extensions=['extra', 'sane_lists', 'md_in_html'])
 
         tag_htmls = []
         for tag in tags:
@@ -178,12 +192,21 @@ class WordPressRSSPublisher:
                 f"<a class=\"deliciouslink\" href=\"{link}\" title=\"{title}\">{title}</a></p>" \
                 f"\n\n{content}\n\n<p class=\"taglist\">Tags: {tag_html}</p></li></ul>"
         
-        data = {
+        return {
             "title": title,
             "content": content_with_source,
             "status": status
         }
+
+    def create_post(self, title: str, content: str, link: str, tags: List[str], status: str = "draft") -> Optional[Dict]:
+        """Create a new WordPress post with tags."""
+        data = self.create_post_dict(title, content, link, tags, status)
+        endpoint = f"{self.api_base}/posts"
         
+        if NO_POST:
+            print(data)
+            return None
+
         try:
             response = requests.post(
                 endpoint,
@@ -264,3 +287,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# vim: set expandtab:tw=4:
